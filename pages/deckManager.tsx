@@ -1,5 +1,19 @@
 import React from 'react';
 
+
+const Header: React.FC = () => {
+    return (
+        <header style={{ backgroundColor: '#282c34', padding: '20px', color: 'white' }}>
+            <h1>Deck Manager
+
+
+                HELLLLLO
+            </h1>
+        </header>
+    );
+}
+
+
 const DeckManager: React.FC = () => {
     return (
         <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
@@ -9,5 +23,9 @@ const DeckManager: React.FC = () => {
         </div>
     );
 };
+
+
+
+
 
 export default DeckManager;
