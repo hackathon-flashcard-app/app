@@ -5,14 +5,19 @@ const Header: React.FC = () => {
     return (
         <header style={{ backgroundColor: '#282c34', padding: '20px', color: 'white' }}>
             <h1>Deck Manager
-
-
-                HELLLLLO
+            
             </h1>
         </header>
     );
 }
 
+const Footer: React.FC = () => {
+    return (
+        <footer style={{ backgroundColor: '#282c34', padding: '20px', color: 'white' }}>
+            <p>&copy; © 2025 BeaverHacks, Beaver Brilliance Team.</p>
+        </footer>
+    );
+}
 
 const DeckManager: React.FC = () => {
     return (
