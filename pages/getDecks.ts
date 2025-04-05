@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface Deck {
     id: number;
@@ -7,10 +7,10 @@ interface Deck {
     cards: string[];
 }
 
-export function getDecks(jsonFilePath: string): Deck[] {
+export function getDecks(): Deck[] {
+    const filePath = path.join(__dirname, 'decks.json');
     try {
-        const absolutePath = path.resolve(jsonFilePath);
-        const data = fs.readFileSync(absolutePath, 'utf-8');
+        const data = fs.readFileSync(filePath, 'utf-8');
         const decks: Deck[] = JSON.parse(data);
         return decks;
     } catch (error) {
@@ -18,3 +18,4 @@ export function getDecks(jsonFilePath: string): Deck[] {
         return [];
     }
 }
+
