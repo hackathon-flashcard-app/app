@@ -35,6 +35,21 @@ const Footer: React.FC = () => {
     );
 }
 
+
+const DeckList: React.FC = () => {
+    return (
+        <div>
+            <h2>Deck List</h2>
+        </div>
+    );
+}
+
+
+
+
+
+
+
 const DeckManager: React.FC = () => {
     return (
         
@@ -44,6 +59,9 @@ const DeckManager: React.FC = () => {
             <h1>Deck Manager</h1>
             <p>Welcome to the Deck Manager page. Use this page to manage your decks.</p>
             
+            <DeckList />
+
+
             <Footer />
         </div>
 
