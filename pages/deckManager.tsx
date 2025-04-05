@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import dynamic from 'next/dynamic';
+import Head from 'next/head';
 
 const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.BrowserRouter), { ssr: false });
 
@@ -39,30 +40,18 @@ const Footer: React.FC = () => {
 const DeckList: React.FC = () => {
     return (
         <div>
-            <h2>Deck List</h2>
+            <h2>DECK LIST GOES HERE</h2>
         </div>
     );
 }
 
-
-
-
-
-
-
 const DeckManager: React.FC = () => {
     return (
         
-        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-            <Header />
-            
+        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>    
             <h1>Deck Manager</h1>
             <p>Welcome to the Deck Manager page. Use this page to manage your decks.</p>
-            
             <DeckList />
-
-
-            <Footer />
         </div>
 
     );
@@ -72,7 +61,9 @@ const DeckManager: React.FC = () => {
 const App: React.FC = () => {
     return (
         <BrowserRouter>
+            <Header />
             <DeckManager />
+            <Footer />
         </BrowserRouter>
     );
 };
