@@ -412,8 +412,9 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
 const Header: React.FC = () => {
 	const { data: session, status } = useSession();
 	const handleLogout = () => {
-		// Actual logout is handled by next-auth link
-		console.log('User logged out');
+		// Clear all localStorage data
+		localStorage.clear();
+		console.log('User logged out and localStorage cleared');
 		signOut({ callbackUrl: 'http://localhost:3000/' });
 	};
 
