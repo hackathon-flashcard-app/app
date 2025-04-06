@@ -1,9 +1,9 @@
-# Next.js App with Google Authentication and Storage Options
+# Beaver Brilliant: Flashcard App - Next.js App with Google Authentication and Storage Options
 
 This application demonstrates user authentication with Google OAuth and provides two storage options for user data:
 
 1. **Google Drive Storage** - Save data to the user's Google Drive (requires authentication)
-2. **Browser Local Storage** - Save data directly in the browser (no authentication required)
+2. **User Local Storage** - Save data directly to the user's computer (no authentication required)
 
 ## Getting Started
 
@@ -11,6 +11,9 @@ This application demonstrates user authentication with Google OAuth and provides
 
 - Node.js 18.17 or later
 - A Google Cloud project with OAuth credentials
+#### For backend llm
+- Python3 with uvicorn & fastapi
+- Ollama
 
 ### Setup
 
@@ -43,6 +46,10 @@ Run the development server:
 
 ```bash
 npm run dev
+```
+- To run the backend llm:
+```bash
+uvicorn app:app --reload
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
