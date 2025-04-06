@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { button } from 'framer-motion/client';
 
 const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.BrowserRouter), { ssr: false });
 const currentDeck: [string, string][] = [];
@@ -101,10 +102,12 @@ const Menu: React.FC = () => {
             }}
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <button>Import from Google Drive</button>
-                <button>Import from JSON</button>
+                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>SAVE CURRENT DECK</button>
+
+                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from Google Drive</button>
+                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from JSON</button>
                 <Link href="/manualFlashcards">
-                    <button>Manually create flashcards</button>
+                    <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Manually create flashcards</button>
                 </Link>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
