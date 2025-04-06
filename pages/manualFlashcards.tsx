@@ -145,7 +145,7 @@ const Menu: React.FC = () => {
             }}
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}} onClick={handleSave}>SAVE CURRENT DECK</button>
+                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}} onClick={handleSave}>Save Current Deck</button>
 
                 <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from Google Drive</button>
                 <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from JSON</button>
