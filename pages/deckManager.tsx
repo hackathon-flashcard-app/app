@@ -174,10 +174,16 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
     }}>
       {deck && (
         <div style={{ 
-          marginBottom: '20px', 
-          textAlign: 'center',
-          width: '100%',
-          maxWidth: '900px'
+            position: 'absolute',
+            top: '75px', // Below header
+            left: '200px', // Menu width
+            right: '0',
+            bottom: '10vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0'
         }}>
           <h2 style={{ 
             fontSize: '1.5rem', 
@@ -194,59 +200,106 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
         </div>
       )}
       
-      {/* Main container for better centering */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        width: '100%',
-        maxWidth: '1060px' // 900px card + 2 × 80px buttons
-      }}>
-        <button 
-          onClick={handleLeftClick}
-          disabled={!hasFlashcards}
-          style={{ 
-            opacity: hasFlashcards ? 1 : 0.5,
-            background: 'none',
-            border: 'none',
-            cursor: hasFlashcards ? 'pointer' : 'default'
-          }}
-        >
-          <Image
-            src="/images/left-arrow.png"
-            height={80}
-            width={80}
-            alt="Previous card"
-          />
-        </button>
-        
-        {/* Container for the flashcard with a fixed size */}
-        <div style={{ 
-          width: 900, 
-          height: 500, 
-          position: 'relative', 
-          fontSize: '20rem',
-          margin: '0 auto'
-        }}>
-          {!hasFlashcards ? (
-            // Show empty state message when no cards exist
-            <EmptyDeckMessage />
-          ) : (
-            // Show the flashcard carousel when cards exist
-            <>
-              <AnimatePresence initial={false} custom={direction}>
-                <motion.div
-                  key={currentIndex}
-                  custom={direction}
-                  variants={variants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{
-                    x: { type: "spring", stiffness: 300, damping: 30 },
-                    opacity: { duration: 0.2 }
-                  }}
-                  style={{ position: 'absolute', width: '100%' }}
+            {/* Main container for better centering */}
+            <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                width: '100%',
+                maxWidth: '1060px' // 900px card + 2 × 80px buttons
+            }}>
+                <button 
+                    onClick={handleLeftClick}
+                    disabled={!hasFlashcards}
+                    style={{ 
+                        opacity: hasFlashcards ? 1 : 0.5,
+                        background: 'none',
+                        border: 'none',
+                        cursor: hasFlashcards ? 'pointer' : 'default'
+                    }}
+                >
+                    <Image
+                        src="/images/left-arrow.png"
+                        height={80}
+                        width={80}
+                        alt="Previous card"
+                    />
+                </button>
+                
+                {/* Container for the flashcard with a fixed size */}
+                <div style={{ 
+                    width: 900, 
+                    height: 500, 
+                    position: 'relative', 
+                    fontSize: '20rem',
+                    margin: '0 auto'
+                }}>
+                    {!hasFlashcards ? (
+                        // Show empty state message when no cards exist
+                        <EmptyDeckMessage />
+                    ) : (
+                        // Show the flashcard carousel when cards exist
+                        <>
+                            <AnimatePresence initial={false} custom={direction}>
+                                <motion.div
+                                    key={currentIndex}
+                                    custom={direction}
+                                    variants={variants}
+                                    initial="enter"
+                                    animate="center"
+                                    exit="exit"
+                                    transition={{
+                                        x: { type: "spring", stiffness: 300, damping: 30 },
+                                        opacity: { duration: 0.2 }
+                                    }}
+                                    style={{ position: 'absolute', width: '100%' }}
+                                >
+                                    <Flashcard front={front} back={back} />
+                                </motion.div>
+                            </AnimatePresence>
+                            
+                            {/* Delete button overlay */}
+                            <button
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    zIndex: 100,
+                                    backgroundColor: '#ff5555',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '50%',
+                                    width: '24px',
+                                    height: '24px',
+                                    fontSize: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    opacity: 0.6,
+                                    transition: 'opacity 0.2s',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                }}
+                                title="Delete this flashcard"
+                                onMouseOver={(e) => (e.currentTarget.style.opacity = '0.9')}
+                                onMouseOut={(e) => (e.currentTarget.style.opacity = '0.6')}
+                            >
+                                ✕
+                            </button>
+                        </>
+                    )}
+                </div>
+                
+                <button 
+                    onClick={handleRightClick}
+                    disabled={!hasFlashcards}
+                    style={{ 
+                        opacity: hasFlashcards ? 1 : 0.5,
+                        background: 'none',
+                        border: 'none',
+                        cursor: hasFlashcards ? 'pointer' : 'default'
+                    }}
                 >
                   <Flashcard front={front} back={back} />
                 </motion.div>
