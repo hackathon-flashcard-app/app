@@ -100,6 +100,12 @@ interface AddFlashcardProps {
 }
 
 const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
+
+    //        -------- DECKS ARE MAPS OF FLASHCARDS --------
+    let currentDeck = new Map<string[], number>();
+    let currentDeckName = "deck1";
+    let key = 1;
+
     const [frontText, setFrontText] = useState("");
     const [backText, setBackText] = useState("");
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -110,6 +116,10 @@ const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
         setFrontText("");
         setBackText("");
         setIsFormOpen(false);
+
+        let currentCard = [frontText, backText];
+        currentDeck.set(currentCard, key)
+        key++;
     };
 
     return (
@@ -127,8 +137,9 @@ const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
                 }}>
                     <div>
                         <input
+                    //          -------- FLASHCARD FRONT FORM --------
                             type="text"
-                            placeholder="Front text"
+                            placeholder="Input front text"
                             value={frontText}
                             onChange={(e) => setFrontText(e.target.value)}
                             style={{ marginBottom: "10px", width: "100%" }}
@@ -136,17 +147,27 @@ const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
                     </div>
                     <div>
                         <input
+                        //          -------- FLASHCARD BACK FORM --------
                             type="text"
-                            placeholder="Back text"
+                            placeholder="Input back text"
                             value={backText}
                             onChange={(e) => setBackText(e.target.value)}
                             style={{ marginBottom: "10px", width: "100%" }}
                         />
                     </div>
-                    <button onClick={handleAdd}>Add Flashcard</button>
+                    <button onClick={handleAdd}
+                    //             -------- ADD FLASHCARD BUTTON --------
+                    style={{
+                        backgroundColor: "#f47e1b",
+                        color: "Black",
+                        fontSize: "1rem",
+                        padding: "10px 20px",
+                    }}
+                    >Add Flashcard</button>
                 </div>
             )}
             <button
+            //         -------- ADD FLASHCARD '+' FLOATING BUTTON --------
                 onClick={() => setIsFormOpen(!isFormOpen)}
                 style={{
                     position: "fixed",
