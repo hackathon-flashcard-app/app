@@ -147,7 +147,7 @@ export default function DeckSelector({ onDeckSelected }: DeckSelectorProps) {
       
       {/* Create Deck Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 flex justify-center items-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
           <div className="bg-gray-800 rounded-lg p-6 w-80">
             <h2 className="text-xl font-bold text-white mb-4">Create New Deck</h2>
             <div className="mb-4">
@@ -193,7 +193,7 @@ export default function DeckSelector({ onDeckSelected }: DeckSelectorProps) {
       
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 flex justify-center items-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
           <div className="bg-gray-800 rounded-lg p-6 w-80 text-center">
             <h2 className="text-xl font-bold text-white mb-2">Delete Deck</h2>
             <p className="text-gray-300 mb-6">
