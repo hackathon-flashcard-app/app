@@ -9,6 +9,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
 const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.BrowserRouter), { ssr: false });
+const currentDeck: [string, string][] = [];
 
 // --- ANIMATION VARIANTS ---
 
@@ -120,7 +121,6 @@ interface AddFlashcardProps {
 const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
 
     //        -------- DECKS ARE MAPS OF FLASHCARDS --------
-    let currentDeck: [string, string][] = [];
     let currentDeckName = "deck1";
     let key = 1;
 
@@ -271,8 +271,6 @@ const DisplayAddedDeck: React.FC<{ deck: [string, string][] }> = ({ deck }) => {
     );
 
 };
-
-
 
 
 const App: React.FC = () => {
