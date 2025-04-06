@@ -10,6 +10,24 @@ import Link from 'next/link';
 
 const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.BrowserRouter), { ssr: false });
 
+// --- ANIMATION VARIANTS ---
+
+const variants = {
+    enter: (direction: number) => ({
+        x: direction > 0 ? 300 : -300,
+        opacity: 0,
+    }),
+    center: {
+        x: 0,
+        opacity: 1,
+    },
+    exit: (direction: number) => ({
+        x: direction > 0 ? -300 : 300,
+        opacity: 0,
+    }),
+};
+
+
 const Header: React.FC = () => {
     const handleLogout = () => {
         console.log('User logged out');
@@ -102,7 +120,7 @@ interface AddFlashcardProps {
 const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
 
     //        -------- DECKS ARE MAPS OF FLASHCARDS --------
-    let currentDeck = new Map<string[], number>();
+    let currentDeck: [string, string][] = [];
     let currentDeckName = "deck1";
     let key = 1;
 
@@ -110,16 +128,16 @@ const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
     const [backText, setBackText] = useState("");
     const [isFormOpen, setIsFormOpen] = useState(false);
 
-    const handleAdd = () => {
-        if (frontText.trim() === "" && backText.trim() === "") return;
+    const handleAdd = (): [string, string][] => {
+        if (frontText.trim() === "" && backText.trim() === "") return [];
         setFlashcards(prev => [...prev, [frontText, backText]]);
         setFrontText("");
         setBackText("");
         setIsFormOpen(false);
 
-        let currentCard = [frontText, backText];
-        currentDeck.set(currentCard, key)
-        key++;
+        let currentCard: [string, string] = [frontText, backText];
+        currentDeck.push(currentCard);
+        return currentDeck;
     };
 
     return (
@@ -155,7 +173,7 @@ const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
                             style={{ marginBottom: "10px", width: "100%" }}
                         />
                     </div>
-                    <button onClick={handleAdd}
+                    <button onClick={() => setFlashcards(handleAdd())}
                     //             -------- ADD FLASHCARD BUTTON --------
                     style={{
                         backgroundColor: "#f47e1b",
@@ -189,13 +207,82 @@ const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
     );
 };
 
+
+
+
+const DisplayAddedDeck: React.FC<{ deck: [string, string][] }> = ({ deck }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [direction, setDirection] = useState(0);
+    const handleLeftClick = () => {
+        setDirection(-1);
+        setCurrentIndex((prevIndex) =>
+            prevIndex === 0 ? deck.length - 1 : prevIndex - 1
+        );
+    };
+    const handleRightClick = () => {
+        setDirection(1);
+        setCurrentIndex((prevIndex) =>
+            prevIndex === deck.length - 1 ? 0 : prevIndex + 1
+        );
+    };
+    const [front, back] = deck[currentIndex];
+
+    return (
+        <div style={{ padding: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 125, marginLeft: 130 }}>
+                <button onClick={handleLeftClick}>
+                    <Image
+                        src="/images/left-arrow.png"
+                        height={80}
+                        width={80}
+                        alt="arrow"
+                    />
+                </button>
+                {/* Container for the flashcard with a fixed size */}
+                <div style={{ width: 900, height: 500, position: 'relative', fontSize: '20rem' }}>
+                    <AnimatePresence initial={false} custom={direction}>
+                        <motion.div
+                            key={currentIndex}
+                            custom={direction}
+                            variants={variants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{
+                                x: { type: "spring", stiffness: 300, damping: 30 },
+                                opacity: { duration: 0.2 }
+                            }}
+                            style={{ position: 'absolute', width: '100%' }}
+                        >
+                            <Flashcard front={front} back={back} />
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+                <button onClick={handleRightClick}>
+                    <Image
+                        src="/images/right-arrow.png"
+                        height={80}
+                        width={80}
+                        alt="arrow"
+                    />
+                </button>
+            </div>
+        </div>
+    );
+
+};
+
+
+
+
 const App: React.FC = () => {
     const [flashcards, setFlashcards] = useState<[string, string][]>([]);
     return (
         <BrowserRouter>
             <Header />
             <Menu />
-            <AddFlashcard setFlashcards={setFlashcards}/>
+            <AddFlashcard setFlashcards={setFlashcards} />
+            {flashcards.length > 0 && <DisplayAddedDeck deck={flashcards} />}
             <Footer />
         </BrowserRouter>
     );
