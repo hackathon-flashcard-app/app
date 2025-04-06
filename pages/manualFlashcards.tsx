@@ -13,7 +13,7 @@ const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.B
 
 // ------ GLOBAL VARIABLES ------
 const currentDeck: [string, string][] = [];
-const currentDeckName = "deck1";
+let currentDeckName: string;
 
 // --- ANIMATION VARIANTS ---
 
@@ -240,10 +240,13 @@ const DisplayAddedDeck: React.FC<{ deck: [string, string][] }> = ({ deck }) => {
         );
     };
     const [front, back] = deck[currentIndex];
-
+    
     return (
+
         <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 125, marginLeft: 130 }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 125, marginLeft: 130, position: 'relative', zIndex: 10 }}>
+                
                 <button onClick={handleLeftClick}>
                     <Image
                         src="/images/left-arrow.png"
@@ -280,6 +283,26 @@ const DisplayAddedDeck: React.FC<{ deck: [string, string][] }> = ({ deck }) => {
                         alt="arrow"
                     />
                 </button>
+
+                <input
+                type="text"
+                placeholder="Input Deck Name"
+                value={currentDeckName}
+                onChange={(e) => currentDeckName = e.target.value}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginTop: 10,
+                    flexDirection: 'column',
+                    position: 'absolute',
+                    top: '-65px',
+                    zIndex: 20,
+                    textAlign: 'center', // Center the placeholder text
+                    fontSize: '2rem',
+                    color: 'black',
+                }}  
+                />
             </div>
         </div>
     );
