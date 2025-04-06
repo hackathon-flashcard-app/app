@@ -10,7 +10,10 @@ import Link from 'next/link';
 import { button } from 'framer-motion/client';
 
 const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.BrowserRouter), { ssr: false });
+
+// ------ GLOBAL VARIABLES ------
 const currentDeck: [string, string][] = [];
+const currentDeckName = "deck1";
 
 // --- ANIMATION VARIANTS ---
 
@@ -81,6 +84,16 @@ const Footer: React.FC = () => {
 
 
 const Menu: React.FC = () => {
+
+    const handleSave = () => {
+        const decksJSON = localStorage.getItem('decks');
+        const decks = decksJSON ? JSON.parse(decksJSON) : {};
+        decks[currentDeckName] = currentDeck;
+        localStorage.setItem('decks', JSON.stringify(decks));
+        alert(`Deck "${currentDeckName}" has been saved!`);
+    };
+
+
     const importGoogleDrive = () => {
 
     };
@@ -102,7 +115,7 @@ const Menu: React.FC = () => {
             }}
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>SAVE CURRENT DECK</button>
+                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}} onClick={handleSave}>SAVE CURRENT DECK</button>
 
                 <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from Google Drive</button>
                 <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from JSON</button>
@@ -124,7 +137,6 @@ interface AddFlashcardProps {
 const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
 
     //        -------- DECKS ARE MAPS OF FLASHCARDS --------
-    let currentDeckName = "deck1";
     let key = 1;
 
     const [frontText, setFrontText] = useState("");
@@ -212,7 +224,6 @@ const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
 
 
 
-
 const DisplayAddedDeck: React.FC<{ deck: [string, string][] }> = ({ deck }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
@@ -274,6 +285,8 @@ const DisplayAddedDeck: React.FC<{ deck: [string, string][] }> = ({ deck }) => {
     );
 
 };
+
+
 
 
 const App: React.FC = () => {
