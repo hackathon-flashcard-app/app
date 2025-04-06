@@ -179,7 +179,8 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '0'
+            padding: '0',
+            isolation: 'isolate' // Create a new stacking context
         }}>
 	{deck && (
         <div style={{ 
@@ -271,7 +272,7 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
                                     style={{ 
                                         position: 'absolute', 
                                         width: '100%',
-                                        zIndex: 100
+                                        zIndex: 10
                                     }}
                                 >
                                     <Flashcard front={front} back={back} />
@@ -384,7 +385,7 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    zIndex: 1000
+                    zIndex: 9999
                 }}>
                     <div style={{
                         backgroundColor: 'gray',
@@ -529,6 +530,7 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 	const [isManualFormOpen, setIsManualFormOpen] = useState(false);
 	const [frontText, setFrontText] = useState("");
 	const [backText, setBackText] = useState("");
+	const [metadataRefreshCounter, setMetadataRefreshCounter] = useState(0);
 
 	// Check if we have any flashcards
 	const hasFlashcards = currentDeck && Array.isArray(currentDeck.cards) && currentDeck.cards.length > 0;
@@ -714,6 +716,8 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 			// Save the updated deck
 			saveDeck(updatedDeck);
 			setCurrentDeck(updatedDeck);
+			// Trigger metadata refresh
+			setMetadataRefreshCounter(prev => prev + 1);
 
 			setMessage(`Added ${data.flashcards.length} flashcards from PDF`);
 		} catch (err) {
@@ -753,6 +757,8 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 			// Save the updated deck
 			saveDeck(updatedDeck);
 			setCurrentDeck(updatedDeck);
+			// Trigger metadata refresh
+			setMetadataRefreshCounter(prev => prev + 1);
 
 			// Reset form
 			setFrontText("");
@@ -785,6 +791,8 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 			// Save the updated deck
 			saveDeck(updatedDeck);
 			setCurrentDeck(updatedDeck);
+			// Trigger metadata refresh
+			setMetadataRefreshCounter(prev => prev + 1);
 
 			// Close the modal
 			setIsClearModalOpen(false);
@@ -990,7 +998,7 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 					padding: "30px",
 					borderRadius: "8px",
 					boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
-					zIndex: 1100,
+					zIndex: 9999,
 					width: "400px",
 					maxWidth: "90%"
 				}}>
@@ -1094,7 +1102,7 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 					alignItems: "center",
 					justifyContent: "center",
 					boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-					zIndex: 1000,
+					zIndex: 1050,
 					cursor: "pointer"
 				}}
 			>
@@ -1113,7 +1121,7 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'center',
-					zIndex: 1500
+					zIndex: 9999
 				}}>
 					<div style={{
 						backgroundColor: 'white',

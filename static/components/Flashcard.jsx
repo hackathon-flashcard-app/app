@@ -16,7 +16,7 @@ const Flashcard = ({ front, back }) => {
         <div 
             className={styles.flashcard} 
             onClick={handleFlip}
-            style={{ position: 'relative', zIndex: 50 }}
+            style={{ position: 'relative', zIndex: 10 }}
         >
             <div className={`${styles.inner} ${flipped ? styles.flipped : ''}`}>
                 <div className={styles.front}>

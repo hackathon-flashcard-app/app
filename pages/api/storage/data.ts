@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from 'next-auth/react';
-import { getFromDrive, saveToDrive, saveToLocalStorage, getFromLocalStorage } from '@/utils/storage';
+import { getFromDrive, saveToDrive } from '@/utils/storage';
 
 export default async function handler(
   req: NextApiRequest,
@@ -29,12 +29,6 @@ export default async function handler(
         return res.status(200).json(data || null);
       }
       
-      // Handle local storage requests - now handled server-side
-      if (storageType === 'local') {
-        const data = await getFromLocalStorage(key as string);
-        return res.status(200).json(data || null);
-      }
-      
       return res.status(400).json({ error: 'Invalid storage type' });
     }
     
@@ -56,17 +50,6 @@ export default async function handler(
         
         if (!success) {
           return res.status(500).json({ error: 'Failed to save to Google Drive' });
-        }
-        
-        return res.status(200).json({ success: true });
-      }
-      
-      // Handle local storage requests - now handled server-side
-      if (storageType === 'local') {
-        const success = await saveToLocalStorage(key as string, data);
-        
-        if (!success) {
-          return res.status(500).json({ error: 'Failed to save to local filesystem' });
         }
         
         return res.status(200).json({ success: true });

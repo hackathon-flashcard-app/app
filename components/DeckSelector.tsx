@@ -10,9 +10,10 @@ import {
 
 interface DeckSelectorProps {
   onDeckSelected: (deckId: string) => void;
+  refreshTrigger?: number; // Optional prop to trigger refresh
 }
 
-export default function DeckSelector({ onDeckSelected }: DeckSelectorProps) {
+export default function DeckSelector({ onDeckSelected, refreshTrigger = 0 }: DeckSelectorProps) {
   const [decks, setDecks] = useState<DeckMetadata[]>([]);
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -43,7 +44,7 @@ export default function DeckSelector({ onDeckSelected }: DeckSelectorProps) {
     };
     
     loadDecks();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger to dependencies
 
   const handleDeckSelect = (deckId: string) => {
     setActiveDeck(deckId);
@@ -96,7 +97,7 @@ export default function DeckSelector({ onDeckSelected }: DeckSelectorProps) {
   };
 
   return (
-    <div className="w-full p-4">
+    <div className="w-full p-4" style={{ position: 'relative', isolation: 'isolate' }}>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-white">Your Decks</h2>
         <button
@@ -147,7 +148,15 @@ export default function DeckSelector({ onDeckSelected }: DeckSelectorProps) {
       
       {/* Create Deck Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+        <div className="fixed inset-0 flex justify-center items-center" style={{ 
+          backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+          zIndex: 9999,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh'
+        }}>
           <div className="bg-gray-800 rounded-lg p-6 w-80">
             <h2 className="text-xl font-bold text-white mb-4">Create New Deck</h2>
             <div className="mb-4">
@@ -193,7 +202,15 @@ export default function DeckSelector({ onDeckSelected }: DeckSelectorProps) {
       
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+        <div className="fixed inset-0 flex justify-center items-center" style={{ 
+          backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+          zIndex: 9999,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh'
+        }}>
           <div className="bg-gray-800 rounded-lg p-6 w-80 text-center">
             <h2 className="text-xl font-bold text-white mb-2">Delete Deck</h2>
             <p className="text-gray-300 mb-6">
