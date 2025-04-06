@@ -40,12 +40,12 @@ export default function Home() {
           <div className="text-center mb-8">
             <Image
               src="/images/beaver_cropped.png"
-              alt="Flashcard App Logo"
+              alt="Beaver Brilliance Logo"
               width={100}
               height={100}
               className="mx-auto mb-4"
             />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Flashcards App</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Beaver Brilliance App</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">Create and study flashcards with ease</p>
           </div>
 
