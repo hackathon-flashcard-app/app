@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import Flashcard from '../static/components/Flashcard'
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
@@ -508,7 +507,8 @@ const Header: React.FC = () => {
 						borderRadius: '4px',
 						cursor: 'pointer'
 					}}>
-						Logout
+						{!session && <span style={{ display: 'block', fontSize: '0.8em' }}>Sign In</span>}
+						{session && <span style={{ display: 'block', fontSize: '0.8em' }}>Sign Out</span>}
 					</button>
 				</Link>
 			</div>
@@ -985,7 +985,10 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks, 
 								width: '100%'
 							}}
 						>
-							Export to Google Drive
+							<span>
+								{loading.googleDrive ? 'Loading...' : 'Import from Google Drive'}
+								{!session && <span style={{ display: 'block', fontSize: '0.8em' }}>(Sign in required)</span>}
+							</span>
 						</button>
 						
 						<button 
@@ -1255,12 +1258,18 @@ const App: React.FC = () => {
 			const decks = getAllDecks();
 
 			if (decks.length === 0) {
-				// Create a default deck if none exist
-				const defaultDeck = createDeck('My First Deck', 'Created automatically');
-				setCurrentDeck(defaultDeck);
+				// Set current deck to null when no decks exist
+				setCurrentDeck(null);
 			} else {
 				// Load the active deck
 				const activeId = getActiveDeckId();
+				
+				// Clear current deck if active ID is empty string (happens after deletion)
+				if (activeId === "") {
+					setCurrentDeck(null);
+					return;
+				}
+				
 				const deckToLoad = activeId ? getDeck(activeId) : getDeck(decks[0].id);
 
 				if (deckToLoad) {
@@ -1272,6 +1281,9 @@ const App: React.FC = () => {
 						setCurrentDeck(firstDeck);
 						setActiveDeck(decks[0].id);
 					}
+				} else {
+					// No valid decks found, clear current deck
+					setCurrentDeck(null);
 				}
 			}
 		}

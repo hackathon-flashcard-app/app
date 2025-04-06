@@ -86,8 +86,16 @@ export default function DeckSelector({ onDeckSelected, refreshTrigger = 0 }: Dec
     if (activeDeckId === deckToDelete) {
       const newActiveId = updatedDecks.length > 0 ? updatedDecks[0].id : null;
       setActiveDeckId(newActiveId);
+      
+      // Always notify parent of deck change, even if null
+      // This ensures the parent knows to clear its currentDeck if no decks are left
       if (newActiveId) {
         onDeckSelected(newActiveId);
+      } else {
+        // If there are no decks left, explicitly set null to force UI refresh
+        onDeckSelected("");
+        // Force a window reload to clear any lingering cards from deleted deck
+        window.location.reload();
       }
     }
     
