@@ -2,6 +2,25 @@
 import { promises as fs } from 'fs';
 
 export type StorageType = 'google' | 'file';
+export type FlashcardType = [string, string]; // [front, back]
+
+export interface Deck {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  cards: FlashcardType[];
+}
+
+export interface DeckMetadata {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  cardCount: number;
+}
 
 // Get storage preference
 export const getStorageType = (): StorageType => {
@@ -61,6 +80,132 @@ export const getLastEditedContent = (): string => {
     console.error('Error getting last edited content:', error);
     return '';
   }
+};
+
+// Multi-deck functions for localStorage
+export const getAllDecks = (): DeckMetadata[] => {
+  if (typeof window === 'undefined') return [];
+  
+  try {
+    const deckIndex = localStorage.getItem('deckIndex');
+    if (!deckIndex) return [];
+    
+    const decks: DeckMetadata[] = JSON.parse(deckIndex);
+    return Array.isArray(decks) ? decks : [];
+  } catch (error) {
+    console.error('Error getting deck index:', error);
+    return [];
+  }
+};
+
+export const getDeck = (deckId: string): Deck | null => {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const deckData = localStorage.getItem(`deck:${deckId}`);
+    if (!deckData) return null;
+    
+    return JSON.parse(deckData);
+  } catch (error) {
+    console.error(`Error getting deck ${deckId}:`, error);
+    return null;
+  }
+};
+
+export const saveDeck = (deck: Deck): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    // Update the deck's updatedAt timestamp
+    const updatedDeck = {
+      ...deck,
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Save the deck data
+    localStorage.setItem(`deck:${deck.id}`, JSON.stringify(updatedDeck));
+    
+    // Update the deck index
+    const allDecks = getAllDecks();
+    const deckMetadata: DeckMetadata = {
+      id: deck.id,
+      name: deck.name,
+      description: deck.description,
+      createdAt: deck.createdAt,
+      updatedAt: updatedDeck.updatedAt,
+      cardCount: deck.cards.length
+    };
+    
+    const existingIndex = allDecks.findIndex(d => d.id === deck.id);
+    if (existingIndex >= 0) {
+      allDecks[existingIndex] = deckMetadata;
+    } else {
+      allDecks.push(deckMetadata);
+    }
+    
+    localStorage.setItem('deckIndex', JSON.stringify(allDecks));
+    
+    // Set as active deck if it's the only one
+    if (allDecks.length === 1) {
+      localStorage.setItem('activeDeckId', deck.id);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error saving deck ${deck.id}:`, error);
+    return false;
+  }
+};
+
+export const deleteDeck = (deckId: string): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    // Remove the deck data
+    localStorage.removeItem(`deck:${deckId}`);
+    
+    // Update the deck index
+    const allDecks = getAllDecks();
+    const updatedDecks = allDecks.filter(deck => deck.id !== deckId);
+    localStorage.setItem('deckIndex', JSON.stringify(updatedDecks));
+    
+    // Update active deck if needed
+    const activeDeckId = getActiveDeckId();
+    if (activeDeckId === deckId) {
+      const newActiveDeck = updatedDecks.length > 0 ? updatedDecks[0].id : null;
+      localStorage.setItem('activeDeckId', newActiveDeck || '');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error deleting deck ${deckId}:`, error);
+    return false;
+  }
+};
+
+export const createDeck = (name: string, description: string = '', cards: FlashcardType[] = []): Deck => {
+  const now = new Date().toISOString();
+  const newDeck: Deck = {
+    id: `deck_${Date.now()}`,
+    name,
+    description,
+    createdAt: now,
+    updatedAt: now,
+    cards
+  };
+  
+  saveDeck(newDeck);
+  return newDeck;
+};
+
+export const getActiveDeckId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('activeDeckId') || null;
+};
+
+export const setActiveDeck = (deckId: string): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('activeDeckId', deckId);
 };
 
 // Google Drive functions - these will use the access token from NextAuth session
