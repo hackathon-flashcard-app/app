@@ -1,14 +1,18 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { useState, useEffect, useRef } from 'react';
+import { Geist, Geist_Mono } from 'next/font/google';
+import { useSession } from 'next-auth/react';
+import UserNav from '@/components/UserNav';
+import StorageSelector from '@/components/StorageSelector';
+import { getStorageType, StorageType, saveToFile, saveLastEditedContent, getLastEditedContent, saveToDrive, getFromDrive } from '@/utils/storage';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+	variable: '--font-geist-sans',
+	subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+	variable: '--font-geist-mono',
+	subsets: ['latin'],
 });
 
 export default function Home() {
