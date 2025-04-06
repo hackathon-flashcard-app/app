@@ -128,8 +128,18 @@ const Menu: React.FC = () => {
 
     };
     const importJSON = () => {
-
+        
     };
+    
+    const clear = () => {
+        currentDeck.length = 0;
+        currentDeckName = "";
+        
+        alert("Cleared the current deck!");
+        // Reload the page to reset the UI state
+        window.location.reload();
+    };
+
     return (
         <div
             style={{
@@ -146,14 +156,15 @@ const Menu: React.FC = () => {
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}} onClick={handleSave}>Save Current Deck</button>
+                
 
-                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from Google Drive</button>
-                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from JSON</button>
-                <Link href="/manualFlashcards">
-                    <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Manually create flashcards</button>
+                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}} onClick={clear}>Clear</button>
+
+                <Link href="/deckManager">
+                    <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Back</button>
                 </Link>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 10 }}>
                 <h2>history of decks...</h2>
             </div>
         </div>
@@ -355,4 +366,4 @@ const App: React.FC = () => {
     );
 };
 
-export default App;
+export default App
