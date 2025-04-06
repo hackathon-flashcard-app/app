@@ -3,6 +3,7 @@ import styles from './Flashcard.module.css';
 import { useState, useEffect, useRef } from 'react';
 import Flashcard from '../static/components/Flashcard'
 import Image from 'next/image';
+import Head from 'next/head';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
@@ -189,6 +190,10 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
             padding: '0',
             isolation: 'isolate' // Create a new stacking context
         }}>
+	<Head>
+      	  <title>Beaver Brilliance</title>
+      	  <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+        </Head>
 	{deck && (
         <div style={{ 
             position: 'absolute',
@@ -986,7 +991,7 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks, 
 							}}
 						>
 							<span>
-								{loading.googleDrive ? 'Loading...' : 'Import from Google Drive'}
+								{loading.googleDrive ? 'Loading...' : 'Export to Google Drive'}
 								{!session && <span style={{ display: 'block', fontSize: '0.8em' }}>(Sign in required)</span>}
 							</span>
 						</button>

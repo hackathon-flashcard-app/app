@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import Image from 'next/image';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { StorageType } from '@/utils/storage';
+import Head from 'next/head'
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -32,6 +32,9 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-8 ${geistSans.variable} ${geistMono.variable}`}>
+      <Head>
+        <title>Beaver Brilliance</title>
+      </Head>
       <main className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
         <div className="p-8">
           <div className="text-center mb-8">
