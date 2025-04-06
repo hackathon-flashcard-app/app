@@ -242,7 +242,7 @@ const Menu: React.FC<MenuProps> = ({ setFlashcards }) => {
                     <button style={{ backgroundColor: '#f57f1c', color: 'black', padding: 10 }}>Manually create flashcards</button>
                 </Link>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 10 }}>
                 <h2>history of decks...</h2>
             </div>
         </div>
