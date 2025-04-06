@@ -105,7 +105,7 @@ const Header: React.FC = () => {
         <header style={{ backgroundColor: '#282c34', padding: '20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h1>Deck Manager</h1>
  
-            <Link href="/login">
+            <Link href="/index.tsx">
                 <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
                     Logout
                 </button>
@@ -121,7 +121,16 @@ const Footer: React.FC = () => {
             <p>&copy; 2025 BeaverHacks, Beaver Brilliance Team.</p>
         </footer>
     );
-}
+}samarie@samarie-Nitro-AN515-54:~/Documents/GitHub/app$ npm run dev
+\
+> app@0.1.0 dev
+> next dev --turbopack
+
+ 
+
+
+
+
  
  
 const DeckList: React.FC = () => {
