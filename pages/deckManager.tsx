@@ -50,7 +50,7 @@ const DeckManager: React.FC = () => {
 
     return (
         <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 125, marginLeft: 130 }}>
                 <button onClick={handleLeftClick}>
                     <Image
                         src="/images/left-arrow.png"
@@ -60,7 +60,7 @@ const DeckManager: React.FC = () => {
                     />
                 </button>
                 {/* Container for the flashcard with a fixed size */}
-                <div style={{ width: '300px', height: '200px', position: 'relative' }}>
+                <div style={{ width: 900, height: 500, position: 'relative', fontSize: '20rem' }}>
                     <AnimatePresence initial={false} custom={direction}>
                         <motion.div
                             key={currentIndex}
@@ -92,55 +92,108 @@ const DeckManager: React.FC = () => {
     );
 };
 
- 
+
 const Header: React.FC = () => {
- 
- 
+
+
     const handleLogout = () => {
         console.log('User logged out');
     };
- 
- 
+
+
     return (
-        <header style={{ backgroundColor: '#282c34', padding: '20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h1>Deck Manager</h1>
- 
+        <header style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            backgroundColor: '#282c34',
+            padding: '10px',
+            color: 'white',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            zIndex: 1000
+        }}>
+            <div style={{ alignItems: 'left', display: 'flex' }}>
+                <Image
+                    src="/images/beaver_cropped.png"
+                    height={50}
+                    width={50}
+                    alt="logo"
+                />
+                <h1 style={{
+                    fontFamily: '"Quicksand", sans-serif',
+                    fontSize: '2rem',
+                    marginLeft: 10
+                }}>Beaver Brilliance</h1>
+            </div>
             <Link href="/login">
-                <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
+                <button onClick={handleLogout} style={{ width: 90 }}>
                     Logout
                 </button>
             </Link>
- 
+
         </header>
     );
 };
- 
+
 const Footer: React.FC = () => {
     return (
-        <footer id="footer" style={{ backgroundColor: '#282c34', padding: '20px', color: 'white' }}>
+        <footer id="footer" style={{ backgroundColor: '#282c34', padding: 20, color: 'white' }}>
             <p>&copy; 2025 BeaverHacks, Beaver Brilliance Team.</p>
         </footer>
     );
 }
- 
- 
-const DeckList: React.FC = () => {
+
+
+const Menu: React.FC = () => {
+    const importGoogleDrive = () => {
+
+    };
+    const importJSON = () => {
+
+    };
+    const manualFlashcards = () => {
+
+    };
     return (
-        <div>
-            <h2>DECK LIST GOES HERE</h2>
+        <div
+            style={{
+                position: 'fixed',
+                top: 75.7,
+                left: 0,
+                bottom: 64,
+                width: 200,
+                backgroundColor: '#313640',
+                padding: 20,
+                color: 'white',
+                zIndex: 10
+            }}
+        >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <button>Import from Google Drive</button>
+                <button>Import from JSON</button>
+                <Link href="/manualFlashcards">
+                    <button>Manually create flashcards</button>
+                </Link>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <h2>history of decks...</h2>
+            </div>
         </div>
     );
 }
- 
- 
+
 const App: React.FC = () => {
     return (
         <BrowserRouter>
             <Header />
+            <Menu />
             <DeckManager />
             <Footer />
         </BrowserRouter>
     );
 };
- 
+
 export default App;

@@ -27,14 +27,24 @@ body {
 
 button{
   cursor: pointer;
+  background-color: grey;
+  border-radius: 10px;
+  min-height: 50px;
 }
 
 main{
   min-height: 100vh;
+  font-family: 'Quicksand', sans-serif;
 }
 
 #footer{
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  min-height: 5vh;
+  text-align: right;
+  background-color: #282c34;
+  padding: 10px;
+  color: white;
 }
