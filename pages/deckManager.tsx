@@ -116,17 +116,23 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
 	}, [deck, currentIndex]);
 
 	const handleLeftClick = () => {
+		console.log('Left arrow clicked');
 		setDirection(-1);
-		setCurrentIndex((prevIndex) =>
-			prevIndex === 0 ? cards.length - 1 : prevIndex - 1
-		);
+		setCurrentIndex((prevIndex) => {
+			const newIndex = prevIndex === 0 ? cards.length - 1 : prevIndex - 1;
+			console.log(`Changing index from ${prevIndex} to ${newIndex}`);
+			return newIndex;
+		});
 	};
 
 	const handleRightClick = () => {
+		console.log('Right arrow clicked');
 		setDirection(1);
-		setCurrentIndex((prevIndex) =>
-			prevIndex === cards.length - 1 ? 0 : prevIndex + 1
-		);
+		setCurrentIndex((prevIndex) => {
+			const newIndex = prevIndex === cards.length - 1 ? 0 : prevIndex + 1;
+			console.log(`Changing index from ${prevIndex} to ${newIndex}`);
+			return newIndex;
+		});
 	};
 
 	// Delete the current flashcard
@@ -211,13 +217,20 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
                 maxWidth: '1060px' // 900px card + 2 × 80px buttons
             }}>
                 <button 
-                    onClick={handleLeftClick}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (hasFlashcards) handleLeftClick();
+                    }}
+                    aria-label="Previous card"
                     disabled={!hasFlashcards}
                     style={{ 
                         opacity: hasFlashcards ? 1 : 0.5,
                         background: 'none',
                         border: 'none',
-                        cursor: hasFlashcards ? 'pointer' : 'default'
+                        cursor: hasFlashcards ? 'pointer' : 'default',
+                        zIndex: 200, // Ensure button is above other elements
+                        position: 'relative'
                     }}
                 >
                     <Image
@@ -225,6 +238,7 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
                         height={80}
                         width={80}
                         alt="Previous card"
+                        style={{ pointerEvents: 'none' }} // Prevent image from capturing clicks
                     />
                 </button>
                 
@@ -254,7 +268,11 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
                                         x: { type: "spring", stiffness: 300, damping: 30 },
                                         opacity: { duration: 0.2 }
                                     }}
-                                    style={{ position: 'absolute', width: '100%' }}
+                                    style={{ 
+                                        position: 'absolute', 
+                                        width: '100%',
+                                        zIndex: 100
+                                    }}
                                 >
                                     <Flashcard front={front} back={back} />
                                 </motion.div>
@@ -294,13 +312,20 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
                 </div>
                 
                 <button 
-                    onClick={handleRightClick}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (hasFlashcards) handleRightClick();
+                    }}
+                    aria-label="Next card"
                     disabled={!hasFlashcards}
                     style={{ 
                         opacity: hasFlashcards ? 1 : 0.5,
                         background: 'none',
                         border: 'none',
-                        cursor: hasFlashcards ? 'pointer' : 'default'
+                        cursor: hasFlashcards ? 'pointer' : 'default',
+                        zIndex: 200, // Ensure button is above other elements
+                        position: 'relative'
                     }}
                 >
                     <Image
@@ -308,6 +333,7 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
                         height={80}
                         width={80}
                         alt="Next card"
+                        style={{ pointerEvents: 'none' }} // Prevent image from capturing clicks
                     />
                 </button>
             </div>
@@ -330,7 +356,7 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
                         overflow: 'hidden'
                     }}>
                         <div style={{
-                            width: `${((safeIndex + 1) / deck.length) * 100}%`,
+                            width: `${((safeIndex + 1) / deck.cards.length) * 100}%`,
                             height: '100%',
                             backgroundColor: '#f57f1c',
                             borderRadius: '4px',
@@ -341,7 +367,7 @@ const FlashcardViewer: React.FC<FlashcardViewerProps> = ({ deck, updateDeck }) =
                         fontSize: '0.9rem',
                         color: '#666'
                     }}>
-                        Card {safeIndex + 1} of {deck.length}
+                        Card {safeIndex + 1} of {deck.cards.length}
                     </div>
                 </div>
             )}
