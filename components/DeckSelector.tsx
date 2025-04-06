@@ -43,7 +43,7 @@ export default function DeckSelector({ onDeckSelected }: DeckSelectorProps) {
     };
     
     loadDecks();
-  }, [onDeckSelected]);
+  }, []);
 
   const handleDeckSelect = (deckId: string) => {
     setActiveDeck(deckId);

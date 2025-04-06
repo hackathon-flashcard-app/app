@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import {
 	getStorageType,
 	saveToFile,
@@ -414,6 +414,7 @@ const Header: React.FC = () => {
 	const handleLogout = () => {
 		// Actual logout is handled by next-auth link
 		console.log('User logged out');
+		signOut({ callbackUrl: 'http://localhost:3000/' });
 	};
 
 	return (
