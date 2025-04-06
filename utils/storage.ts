@@ -320,3 +320,35 @@ async function checkFileExists(fileName: string, accessToken: string): Promise<s
     return null;
   }
 }
+
+// Interface for Google Drive file metadata
+export interface DriveFile {
+  id: string;
+  name: string;
+  modifiedTime?: string;
+}
+
+// Function to retrieve JSON files from Google Drive
+export const getJsonFilesFromDrive = async (accessToken: string): Promise<DriveFile[]> => {
+  try {
+    // Query for JSON files (matching by extension)
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name contains '.json'&fields=files(id,name,modifiedTime)`, 
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to search Drive for JSON files: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.files || [];
+  } catch (error) {
+    console.error('Error getting JSON files from Drive:', error);
+    return [];
+  }
+};
