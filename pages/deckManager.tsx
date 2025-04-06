@@ -123,7 +123,7 @@ const Header: React.FC = () => {
                     marginLeft: 10
                 }}>Beaver Brilliance</h1>
             </div>
-            <Link href="/login">
+            <Link href="/">
                 <button onClick={handleLogout} style={{ width: 90 }}>
                     Logout
                 </button>
