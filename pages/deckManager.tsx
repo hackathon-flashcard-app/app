@@ -10,10 +10,6 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { getStorageType, saveToFile, saveToDrive, getFromDrive } from '@/utils/storage';
 
-
-var testTuple: [string, string][];
-testTuple = [["Hey", "Steve"], ["Second", "Bill"], ["Third", "Jeff"]];
-
 export type FlashcardType = [string, string];
 
 interface MenuProps {
@@ -24,7 +20,6 @@ interface MenuProps {
 interface DeckManagerProps {
     flashcards: FlashcardType[];
 }
-
 
 const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.BrowserRouter), { ssr: false });
 
@@ -43,14 +38,72 @@ const variants = {
     }),
 };
 
-const DeckManager: React.FC<DeckManagerProps> = ({ flashcards }) => {
+const EmptyDeckMessage = () => (
+    <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+        border: '2px dashed #ccc',
+        borderRadius: '10px',
+        padding: '1.5rem',
+        textAlign: 'center',
+        color: '#666',
+        overflow: 'hidden'
+    }}>
+        <h2 style={{ 
+            marginBottom: '0.5rem', 
+            fontSize: '1.2rem',
+            maxWidth: '100%' 
+        }}>
+            No Flashcards Yet
+        </h2>
+        <p style={{ 
+            fontSize: '0.9rem',
+            maxWidth: '100%',
+            lineHeight: '1.2' 
+        }}>
+            Create your first flashcard by clicking the "+" button
+        </p>
+        <p style={{ 
+            marginTop: '0.5rem', 
+            fontSize: '0.8rem',
+            maxWidth: '100%',
+            lineHeight: '1.2'
+        }}>
+            Or use the menu options on the left to import a deck
+        </p>
+    </div>
+);
+
+interface DeckManagerProps {
+    flashcards: FlashcardType[];
+    setFlashcards: React.Dispatch<React.SetStateAction<FlashcardType[]>>;
+}
+
+const DeckManager: React.FC<DeckManagerProps> = ({ flashcards, setFlashcards }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     
-    // Ensure we have a valid array of flashcards, even if empty or undefined
-    const deck: FlashcardType[] = Array.isArray(flashcards) && flashcards.length > 0 
-        ? flashcards 
-        : testTuple;
+    // Check if we have any flashcards
+    const hasFlashcards = Array.isArray(flashcards) && flashcards.length > 0;
+    
+    // Create a default card for empty state
+    const defaultCard: FlashcardType = ["Add a flashcard to start learning", "Click the + button to create a card"];
+    
+    // Use real flashcards or default placeholder
+    const deck: FlashcardType[] = hasFlashcards ? flashcards : [defaultCard];
+    
+    // Reset index when flashcards change
+    useEffect(() => {
+        if (currentIndex >= flashcards.length && flashcards.length > 0) {
+            setCurrentIndex(flashcards.length - 1);
+        }
+    }, [flashcards, currentIndex]);
     
     const handleLeftClick = () => {
         setDirection(-1);
@@ -66,51 +119,248 @@ const DeckManager: React.FC<DeckManagerProps> = ({ flashcards }) => {
         );
     };
 
+    // Delete the current flashcard
+    const handleDelete = () => {
+        if (!hasFlashcards) return;
+        
+        // Create a new array without the current card
+        const updatedFlashcards = [...flashcards];
+        updatedFlashcards.splice(safeIndex, 1);
+        
+        // Update the state
+        setFlashcards(updatedFlashcards);
+        
+        // Update localStorage
+        localStorage.setItem('currentFlashcards', JSON.stringify(updatedFlashcards));
+        
+        // Adjust the current index if necessary
+        if (safeIndex >= updatedFlashcards.length) {
+            setCurrentIndex(Math.max(0, updatedFlashcards.length - 1));
+        }
+        
+        // Close the modal
+        setIsDeleteModalOpen(false);
+    };
+
     // Ensure we have a valid index
     const safeIndex = currentIndex >= 0 && currentIndex < deck.length ? currentIndex : 0;
+    
     // Get current flashcard data
     const [front, back] = deck[safeIndex];
 
     return (
-        <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 125, marginLeft: 130 }}>
-                <button onClick={handleLeftClick}>
+        <div style={{ 
+            padding: '2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            position: 'relative',
+            left: '100px', // Offset to account for the 200px menu (half of 200px)
+            width: 'calc(100% - 200px)' // Adjust width to account for menu
+        }}>
+            {/* Main container for better centering */}
+            <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                marginTop: 125,
+                width: '100%',
+                maxWidth: '1060px' // 900px card + 2 × 80px buttons
+            }}>
+                <button 
+                    onClick={handleLeftClick}
+                    disabled={!hasFlashcards}
+                    style={{ 
+                        opacity: hasFlashcards ? 1 : 0.5,
+                        background: 'none',
+                        border: 'none',
+                        cursor: hasFlashcards ? 'pointer' : 'default'
+                    }}
+                >
                     <Image
                         src="/images/left-arrow.png"
                         height={80}
                         width={80}
-                        alt="arrow"
+                        alt="Previous card"
                     />
                 </button>
+                
                 {/* Container for the flashcard with a fixed size */}
-                <div style={{ width: 900, height: 500, position: 'relative', fontSize: '20rem' }}>
-                    <AnimatePresence initial={false} custom={direction}>
-                        <motion.div
-                            key={currentIndex}
-                            custom={direction}
-                            variants={variants}
-                            initial="enter"
-                            animate="center"
-                            exit="exit"
-                            transition={{
-                                x: { type: "spring", stiffness: 300, damping: 30 },
-                                opacity: { duration: 0.2 }
-                            }}
-                            style={{ position: 'absolute', width: '100%' }}
-                        >
-                            <Flashcard front={front} back={back} />
-                        </motion.div>
-                    </AnimatePresence>
+                <div style={{ 
+                    width: 900, 
+                    height: 500, 
+                    position: 'relative', 
+                    fontSize: '20rem',
+                    margin: '0 auto'
+                }}>
+                    {!hasFlashcards ? (
+                        // Show empty state message when no cards exist
+                        <EmptyDeckMessage />
+                    ) : (
+                        // Show the flashcard carousel when cards exist
+                        <>
+                            <AnimatePresence initial={false} custom={direction}>
+                                <motion.div
+                                    key={currentIndex}
+                                    custom={direction}
+                                    variants={variants}
+                                    initial="enter"
+                                    animate="center"
+                                    exit="exit"
+                                    transition={{
+                                        x: { type: "spring", stiffness: 300, damping: 30 },
+                                        opacity: { duration: 0.2 }
+                                    }}
+                                    style={{ position: 'absolute', width: '100%' }}
+                                >
+                                    <Flashcard front={front} back={back} />
+                                </motion.div>
+                            </AnimatePresence>
+                            
+                            {/* Delete button overlay */}
+                            <button
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    zIndex: 100,
+                                    backgroundColor: '#ff5555',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '50%',
+                                    width: '24px',
+                                    height: '24px',
+                                    fontSize: '12px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    opacity: 0.6,
+                                    transition: 'opacity 0.2s',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                }}
+                                title="Delete this flashcard"
+                                onMouseOver={(e) => (e.currentTarget.style.opacity = '0.9')}
+                                onMouseOut={(e) => (e.currentTarget.style.opacity = '0.6')}
+                            >
+                                ✕
+                            </button>
+                        </>
+                    )}
                 </div>
-                <button onClick={handleRightClick}>
+                
+                <button 
+                    onClick={handleRightClick}
+                    disabled={!hasFlashcards}
+                    style={{ 
+                        opacity: hasFlashcards ? 1 : 0.5,
+                        background: 'none',
+                        border: 'none',
+                        cursor: hasFlashcards ? 'pointer' : 'default'
+                    }}
+                >
                     <Image
                         src="/images/right-arrow.png"
                         height={80}
                         width={80}
-                        alt="arrow"
+                        alt="Next card"
                     />
                 </button>
             </div>
+            
+            {/* Progress bar */}
+            {hasFlashcards && (
+                <div style={{ 
+                    width: '900px', 
+                    margin: '20px auto 0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px'
+                }}>
+                    <div style={{
+                        width: '100%',
+                        height: '8px',
+                        backgroundColor: '#e0e0e0',
+                        borderRadius: '4px',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{
+                            width: `${((safeIndex + 1) / deck.length) * 100}%`,
+                            height: '100%',
+                            backgroundColor: '#f57f1c',
+                            borderRadius: '4px',
+                            transition: 'width 0.3s ease-in-out'
+                        }} />
+                    </div>
+                    <div style={{
+                        fontSize: '0.9rem',
+                        color: '#666'
+                    }}>
+                        Card {safeIndex + 1} of {deck.length}
+                    </div>
+                </div>
+            )}
+            
+            {/* Delete Confirmation Modal */}
+            {isDeleteModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: 'gray',
+                        padding: '24px',
+                        borderRadius: '8px',
+                        maxWidth: '400px',
+                        width: '90%',
+                        textAlign: 'center'
+                    }}>
+                        <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Delete Flashcard?</h3>
+                        <p style={{ marginBottom: '24px' }}>
+                            Are you sure you want to delete this flashcard?
+                            <br />
+                            <strong>Front:</strong> {front.length > 30 ? front.substring(0, 30) + '...' : front}
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <button
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: 'gray',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#ff5555',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -210,13 +460,16 @@ const Menu: React.FC<MenuProps> = (props) => {
     const [frontText, setFrontText] = useState("");
     const [backText, setBackText] = useState("");
     
+    // Check if we have any flashcards
+    const hasFlashcards = Array.isArray(flashcards) && flashcards.length > 0;
+    
     // Handle saving current flashcards
     const saveCurrentDeck = () => {
         try {
-            // Get the current flashcards state via props, ensuring we have valid data
+            // Get the current flashcards state via props
             const currentFlashcards = Array.isArray(flashcards) && flashcards.length > 0 
                 ? [...flashcards] // Create a copy to avoid mutation issues
-                : testTuple;
+                : [];
             
             const flashcardsToSave = JSON.stringify(currentFlashcards);
             
@@ -390,6 +643,29 @@ const Menu: React.FC<MenuProps> = (props) => {
         setTimeout(() => setMessage(''), 3000);
     };
     
+    // Handle clearing all flashcards
+    const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+    
+    const handleClearAllFlashcards = () => {
+        try {
+            // Clear the flashcards state
+            setFlashcards([]);
+            
+            // Clear localStorage
+            localStorage.removeItem('currentFlashcards');
+            
+            // Close the modal
+            setIsClearModalOpen(false);
+            
+            setMessage('All flashcards cleared successfully');
+        } catch (error) {
+            console.error('Error clearing flashcards:', error);
+            setMessage('Error clearing flashcards');
+        }
+        
+        setTimeout(() => setMessage(''), 3000);
+    };
+    
     return (
         <>
             <div
@@ -448,6 +724,21 @@ const Menu: React.FC<MenuProps> = (props) => {
                         style={{backgroundColor: '#4CAF50', color:'white', padding: 10}}
                     >
                         Save Current Deck
+                    </button>
+                    
+                    <div style={{ borderTop: '1px solid #444', margin: '10px 0' }}></div>
+                    
+                    <button 
+                        onClick={() => setIsClearModalOpen(true)}
+                        disabled={!hasFlashcards}
+                        style={{
+                            backgroundColor: '#ff5555', 
+                            color: 'white', 
+                            padding: 10,
+                            opacity: hasFlashcards ? 1 : 0.5
+                        }}
+                    >
+                        Clear All Flashcards
                     </button>
                 </div>
                 
@@ -601,6 +892,66 @@ const Menu: React.FC<MenuProps> = (props) => {
             >
                 +
             </button>
+            
+            {/* Clear All Flashcards Confirmation Modal */}
+            {isClearModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1500
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '24px',
+                        borderRadius: '8px',
+                        maxWidth: '400px',
+                        width: '90%',
+                        textAlign: 'center'
+                    }}>
+                        <h3 style={{ color: '#333', marginTop: 0, marginBottom: '16px' }}>Clear All Flashcards?</h3>
+                        <p style={{ color: '#555', marginBottom: '24px' }}>
+                            Are you sure you want to delete all flashcards? This action cannot be undone.
+                        </p>
+                        <p style={{ color: '#777', fontSize: '0.9rem', marginBottom: '24px' }}>
+                            You currently have {flashcards.length} flashcard{flashcards.length !== 1 ? 's' : ''}.
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <button
+                                onClick={() => setIsClearModalOpen(false)}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#f0f0f0',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleClearAllFlashcards}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: '#ff5555',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
@@ -637,7 +988,7 @@ const App: React.FC = () => {
         <BrowserRouter>
             <Header />
             <Menu setFlashcards={setFlashcards} flashcards={flashcards} />
-            <DeckManager flashcards={flashcards} />
+            <DeckManager flashcards={flashcards} setFlashcards={setFlashcards} />
             <Footer />
         </BrowserRouter>
     );
