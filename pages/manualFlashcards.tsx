@@ -86,11 +86,41 @@ const Footer: React.FC = () => {
 const Menu: React.FC = () => {
 
     const handleSave = () => {
-        const decksJSON = localStorage.getItem('decks');
-        const decks = decksJSON ? JSON.parse(decksJSON) : {};
-        decks[currentDeckName] = currentDeck;
-        localStorage.setItem('decks', JSON.stringify(decks));
-        alert(`Deck "${currentDeckName}" has been saved!`);
+        if (currentDeck.length === 0) {
+            alert("Cannot save an empty deck!");
+            return;
+        }
+
+        if (!currentDeckName || currentDeckName.trim() === "") {
+            alert("Please provide a name for your deck!");
+            return;
+        }
+
+        try {
+            // Create a data structure with the deck name and cards
+            const deckData = {
+                [currentDeckName]: currentDeck
+            };
+            
+            // Convert to JSON string
+            const jsonString = JSON.stringify(deckData, null, 2);
+            
+            // Create a blob with the JSON data
+            const blob = new Blob([jsonString], { type: "application/json" });
+            
+            // Create a download link with the deck name as the filename
+            const downloadLink = document.createElement("a");
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = `${currentDeckName}.json`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+            
+            alert(`Deck "${currentDeckName}" saved successfully!`);
+        } catch (error) {
+            console.error("Error saving deck:", error);
+            alert("Failed to save deck. Please try again.");
+        }
     };
 
 
