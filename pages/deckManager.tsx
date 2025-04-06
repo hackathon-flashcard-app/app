@@ -121,10 +121,7 @@ const Footer: React.FC = () => {
             <p>&copy; 2025 BeaverHacks, Beaver Brilliance Team.</p>
         </footer>
     );
-}samarie@samarie-Nitro-AN515-54:~/Documents/GitHub/app$ npm run dev
-\
-> app@0.1.0 dev
-> next dev --turbopack
+};
 
  
 
