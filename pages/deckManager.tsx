@@ -804,7 +804,7 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 					gap: 10,
 					overflowY: 'auto'
 				}}>
-					<h2 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Deck Actions</h2>
+					<h3 style={{ fontSize: '1rem', marginBottom: '10px' }}>Import Options</h3>
 
 					<button
 						onClick={importGoogleDrive}
@@ -841,31 +841,83 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 						{loading.pdf ? 'Processing...' : 'Add Cards from PDF'}
 					</button>
 
-					<button
-						onClick={() => setIsManualFormOpen(true)}
-						disabled={!currentDeck}
-						style={{
-							backgroundColor: '#f57f1c',
-							color: 'black',
-							padding: 10,
-							opacity: !currentDeck ? 0.5 : 1
-						}}
-					>
-						Add Flashcard Manually
-					</button>
-
-					<button
-						onClick={handleExportDeck}
-						disabled={loading.export || !currentDeck || !hasFlashcards}
-						style={{
-							backgroundColor: '#4CAF50',
-							color: 'white',
-							padding: 10,
-							opacity: (!currentDeck || !hasFlashcards) ? 0.5 : 1
-						}}
-					>
-						{loading.export ? 'Exporting...' : 'Export Current Deck'}
-					</button>
+					<div style={{ 
+						borderTop: '1px solid #444', 
+						margin: '10px 0', 
+						paddingTop: '10px'
+					}}>
+						<h3 style={{ fontSize: '1rem', marginBottom: '10px' }}>Export Options</h3>
+						
+						<button 
+							onClick={() => {
+								if (!currentDeck || !hasFlashcards) return;
+								
+								setLoading(prev => ({ ...prev, export: true }));
+								if (session?.accessToken) {
+									saveToDrive(
+										`${currentDeck.name.replace(/\s+/g, '_')}.json`, 
+										currentDeck, 
+										session.accessToken as string
+									)
+										.then(success => {
+											if (success) {
+												setMessage('Saved to Google Drive successfully');
+											} else {
+												setMessage('Failed to save to Google Drive');
+											}
+											setLoading(prev => ({ ...prev, export: false }));
+										});
+								} else {
+									setMessage('Please sign in with Google to use this feature');
+									setLoading(prev => ({ ...prev, export: false }));
+								}
+								
+								setTimeout(() => setMessage(''), 3000);
+							}}
+							disabled={loading.export || !currentDeck || !hasFlashcards || !session}
+							style={{
+								backgroundColor: '#4285F4', 
+								color: 'white', 
+								padding: 10,
+								marginBottom: 8,
+								opacity: (!currentDeck || !hasFlashcards || !session) ? 0.5 : 1,
+								width: '100%'
+							}}
+						>
+							Export to Google Drive
+						</button>
+						
+						<button 
+							onClick={() => {
+								if (!currentDeck || !hasFlashcards) return;
+								
+								setLoading(prev => ({ ...prev, export: true }));
+								try {
+									saveToFile(
+										JSON.stringify(currentDeck, null, 2), 
+										currentDeck.name.replace(/\s+/g, '_')
+									);
+									setMessage('Deck exported to file successfully');
+								} catch (error) {
+									console.error('Error exporting deck:', error);
+									setMessage('Error exporting deck');
+								}
+								setLoading(prev => ({ ...prev, export: false }));
+								
+								setTimeout(() => setMessage(''), 3000);
+							}}
+							disabled={loading.export || !currentDeck || !hasFlashcards}
+							style={{
+								backgroundColor: '#34A853', 
+								color: 'white', 
+								padding: 10,
+								opacity: (!currentDeck || !hasFlashcards) ? 0.5 : 1,
+								width: '100%'
+							}}
+						>
+							Export to JSON File
+						</button>
+					</div>
 
 					<div style={{ borderTop: '1px solid #444', margin: '10px 0' }}></div>
 
