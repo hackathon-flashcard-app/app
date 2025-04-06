@@ -28,3 +28,13 @@ body {
 button{
   cursor: pointer;
 }
+
+main{
+  min-height: 100vh;
+}
+
+#footer{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
