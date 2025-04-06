@@ -9,11 +9,14 @@ export const getStorageType = (): StorageType => {
   return (localStorage.getItem('storagePreference') as StorageType) || 'file';
 };
 
-// File operations using downloaded File objects (from use-file-picker)
-export const saveToFile = (content: string, fileName: string): void => {
+// File operations using downloaded File objects
+export const saveToFile = (content: string, baseName: string): void => {
   if (typeof window === 'undefined') return;
   
   try {
+    // Always ensure we use .json extension
+    const fileName = `${baseName.replace(/\.\w+$/, '')}.json`;
+    
     // Create a blob with the JSON content
     const blob = new Blob([content], { type: 'application/json' });
     

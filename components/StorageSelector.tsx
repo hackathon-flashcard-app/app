@@ -47,17 +47,15 @@ export default function StorageSelector({ onStorageChange, onFileNameChange }: S
   };
   
   const handleFileNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newFileName = event.target.value;
+    let newFileName = event.target.value;
     
-    // Ensure filename ends with .json
-    let validFileName = newFileName;
-    if (!validFileName.endsWith('.json')) {
-      validFileName = validFileName + '.json';
-    }
+    // Remove any file extension
+    newFileName = newFileName.replace(/\.\w+$/, '');
     
-    setFileName(validFileName);
-    localStorage.setItem('fileName', validFileName);
-    onFileNameChange(validFileName);
+    // Store it without extension
+    setFileName(newFileName);
+    localStorage.setItem('fileName', newFileName);
+    onFileNameChange(newFileName);
   };
   
   return (
@@ -86,20 +84,21 @@ export default function StorageSelector({ onStorageChange, onFileNameChange }: S
         </button>
       </div>
       
-      {storageType === 'file' && (
-        <div className="mt-4">
-          <label className="block text-sm font-medium mb-1">
-            File Name:
+      <div className="mt-4">
+        <label className="block text-sm font-medium mb-1">
+          File Name: <span className="text-xs text-gray-500">(without extension)</span>
+          <div className="flex">
             <input
               type="text"
               value={fileName}
               onChange={handleFileNameChange}
               className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="data.json"
+              placeholder="data"
             />
-          </label>
-        </div>
-      )}
+            <span className="flex items-center ml-2 text-gray-600">.json</span>
+          </div>
+        </label>
+      </div>
       
       <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
         {storageType === 'file'

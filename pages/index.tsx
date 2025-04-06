@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { useSession } from 'next-auth/react';
 import UserNav from '@/components/UserNav';
@@ -20,6 +20,7 @@ export default function Home() {
 	const [storageType, setStorageType] = useState<StorageType>('file');
 	const [demoData, setDemoData] = useState<string>('');
 	const [fileName, setFileName] = useState<string>('data.json');
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
 		// Load storage preference on component mount
@@ -45,7 +46,7 @@ export default function Home() {
 		}
 		
 		try {
-			const data = await getFromDrive('demoData.json', session.accessToken as string);
+			const data = await getFromDrive(`${fileName}.json`, session.accessToken as string);
 			if (data) {
 				setDemoData(typeof data === 'string' ? data : JSON.stringify(data, null, 2));
 			}
@@ -70,7 +71,7 @@ export default function Home() {
 					return;
 				}
 				
-				const success = await saveToDrive('demoData.json', demoData, session.accessToken as string);
+				const success = await saveToDrive(`${fileName}.json`, demoData, session.accessToken as string);
 				if (success) {
 					alert('Saved to Google Drive!');
 				} else {
@@ -94,6 +95,48 @@ export default function Home() {
 	
 	const handleFileNameChange = (newFileName: string) => {
 		setFileName(newFileName);
+	};
+	
+	const handleImportLocalFile = () => {
+		fileInputRef.current?.click();
+	};
+	
+	const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const files = event.target.files;
+		if (!files || files.length === 0) return;
+		
+		const file = files[0];
+		
+		// Check if file is JSON
+		if (!file.name.endsWith('.json')) {
+			alert('Please select a JSON file');
+			return;
+		}
+		
+		// Set the filename based on the imported file (without extension)
+		const baseName = file.name.replace(/\.json$/, '');
+		setFileName(baseName);
+		
+		// Read file content
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			try {
+				const content = e.target?.result as string;
+				setDemoData(content);
+				saveLastEditedContent(content);
+			} catch (error) {
+				console.error('Error parsing file content:', error);
+				alert('Failed to read file. Make sure it is a valid JSON file.');
+			}
+		};
+		reader.onerror = () => {
+			console.error('Error reading file');
+			alert('Failed to read file');
+		};
+		reader.readAsText(file);
+		
+		// Reset the input so the same file can be selected again
+		event.target.value = '';
 	};
 
 	return (
@@ -123,22 +166,41 @@ export default function Home() {
 						placeholder="Enter JSON data here..."
 					/>
 
-					<div className="flex space-x-2">
+					<div className="flex flex-wrap gap-2">
+						{/* Save button */}
 						<button
 							onClick={saveData}
 							className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 						>
-							{storageType === 'file' ? `Download ${fileName}` : 'Save to Google Drive'}
+							{storageType === 'file' ? `Download ${fileName}.json` : `Save to Drive as ${fileName}.json`}
 						</button>
 						
+						{/* Import from local file button */}
+						<button
+							onClick={handleImportLocalFile}
+							className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+						>
+							Import from File
+						</button>
+						
+						{/* Google Drive load button */}
 						{storageType === 'google' && session && (
 							<button
 								onClick={loadFromGoogleDrive}
-								className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+								className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
 							>
-								Reload from Drive
+								Load from Drive
 							</button>
 						)}
+						
+						{/* Hidden file input for import */}
+						<input 
+							type="file"
+							ref={fileInputRef}
+							onChange={handleFileSelect}
+							style={{ display: 'none' }}
+							accept=".json"
+						/>
 					</div>
 				</div>
 			</main>
