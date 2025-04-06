@@ -235,9 +235,9 @@ const Menu: React.FC<MenuProps> = ({ setFlashcards }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button style={{ backgroundColor: '#f57f1c', color: 'black', padding: 10 }}>Import from Google Drive</button>
                 <button style={{ backgroundColor: '#f57f1c', color: 'black', padding: 10 }}>Import from JSON</button>
-                <button>Import from Google Drive</button>
-                <button>Import from JSON</button>
-                <button onClick={importPDF}>Upload PDF</button>
+                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from Google Drive</button>
+                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from JSON</button>
+                <button onClick={importPDF} style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Upload PDF</button>
                 <Link href="/manualFlashcards">
                     <button style={{ backgroundColor: '#f57f1c', color: 'black', padding: 10 }}>Manually create flashcards</button>
                 </Link>
