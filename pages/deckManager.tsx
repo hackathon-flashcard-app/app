@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './Flashcard.module.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Flashcard from '../static/components/Flashcard'
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,6 +34,12 @@ interface MenuProps {
 }
 
 const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.BrowserRouter), { ssr: false });
+
+export type FlashcardType = [string, string];
+
+interface MenuProps {
+    setFlashcards: React.Dispatch<React.SetStateAction<FlashcardType[]>>;
+}
 
 const variants = {
 	enter: (direction: number) => ({
@@ -519,7 +525,8 @@ const Footer: React.FC = () => {
 }
 
 
-const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }) => {
+const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks, setFlashcards }) => {
+	const fileInputRef = useRef<HTMLInputElement>(null);
 	const { data: session } = useSession();
 	const [loading, setLoading] = useState<Record<string, boolean>>({
 		googleDrive: false,
@@ -609,7 +616,54 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 		setTimeout(() => setMessage(''), 3000);
 	};
 
-	// Import from local JSON file
+	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            // Read the file as an ArrayBuffer
+            const arrayBuffer = await file.arrayBuffer();
+
+            // Dynamically import pdfjs-dist from its legacy build
+            const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
+
+            let pdfText = '';
+            // Loop through each page and extract text
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                // Combine text items into one string for this page
+                const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                pdfText += pageText + '\n';
+            }
+
+            // Now call your backend API with the extracted PDF text
+            const response = await fetch("http://127.0.0.1:8000/generate_flashcards", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ inputText: pdfText }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log("Generated flashcards:", data.flashcards);
+            // Update the shared flashcards state
+            setFlashcards(data.flashcards);
+        } catch (err) {
+            console.error("Error processing PDF:", err);
+        }
+    };
+    const importPDF = async () => {
+        fileInputRef.current?.click();
+    };
+
 	const importJSON = () => {
 		const input = document.createElement('input');
 		input.type = 'file';
@@ -663,52 +717,6 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 		input.click();
 	};
 
-	// Import from PDF
-	const importPDF = async () => {
-		if (!currentDeck) {
-			setMessage('Please select or create a deck first');
-			setTimeout(() => setMessage(''), 3000);
-			return;
-		}
-
-		setLoading(prev => ({ ...prev, pdf: true }));
-
-		const pdfText =
-			"femur - is a bone in a human leg\nhumerus - is a bone in the upper arm";
-		try {
-			const response = await fetch("http://127.0.0.1:8000/generate_flashcards", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ inputText: pdfText }),
-			});
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-			const data = await response.json();
-			console.log("Generated flashcards:", data.flashcards);
-
-			// Update the current deck
-			const updatedDeck = {
-				...currentDeck,
-				cards: [...currentDeck.cards, ...data.flashcards],
-				updatedAt: new Date().toISOString()
-			};
-
-			// Save the updated deck
-			saveDeck(updatedDeck);
-			setCurrentDeck(updatedDeck);
-			// Trigger metadata refresh
-			setMetadataRefreshCounter(prev => prev + 1);
-
-			setMessage(`Added ${data.flashcards.length} flashcards from PDF`);
-		} catch (err) {
-			console.error("Error importing PDF:", err);
-			setMessage('Error generating flashcards from PDF');
-		}
-
-		setLoading(prev => ({ ...prev, pdf: false }));
-		setTimeout(() => setMessage(''), 3000);
-	};
 
 	// Handle adding a new flashcard manually
 	const handleAddFlashcard = () => {
@@ -803,6 +811,13 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 					flexDirection: 'column'
 				}}
 			>
+				 <input
+                type="file"
+                accept="application/pdf"
+                style={{ display: 'none' }}
+                ref={fileInputRef}
+                onChange={handleFileChange}
+            	/>
 				{/* Deck selection section */}
 				<DeckSelector 
 					refreshTrigger={metadataRefreshCounter}
@@ -1270,6 +1285,16 @@ const App: React.FC = () => {
 		setCurrentDeck(updatedDeck);
 	};
 
+	const setFlashcards = (newFlashcards: FlashcardType[]) => {
+		if (!currentDeck) return;
+		const updatedDeck = {
+		  ...currentDeck,
+		  cards: newFlashcards,
+		  updatedAt: new Date().toISOString()
+		};
+		handleUpdateDeck(updatedDeck);
+	  };
+
 	return (
 		<BrowserRouter>
 			<Header />
@@ -1287,6 +1312,7 @@ const App: React.FC = () => {
 				currentDeck={currentDeck}
 				setCurrentDeck={setCurrentDeck}
 				refreshDecks={refreshDecks}
+				setFlashcards={setFlashcards}
 			/>
 			<Footer />
 		</BrowserRouter>

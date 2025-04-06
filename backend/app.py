@@ -26,7 +26,7 @@ async def generate_flashcards(request: FlashcardRequest):
         "Your task is to output a JSON array of tuples [front, back]. "
         "For example, if the input text is:\n"
         "femur - is a bone in a human leg\n"
-        "humerus - is a bone in the upper arm\n"
+        "A bone in the upper arm is called humerus\n"
         "Then the output should be: [[\"femur\", \"is a bone in a human leg\"], [\"humerus\", \"is a bone in the upper arm\"]].\n\n"
         f"Now extract flashcards from the following text:\n{request.inputText}"
     )
