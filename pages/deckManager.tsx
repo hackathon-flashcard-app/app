@@ -113,8 +113,7 @@ const Header: React.FC = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            zIndex: 1000
-        }}>
+            zIndex: 1000}}>
             <div style={{ alignItems: 'left', display: 'flex' }}>
                 <Image
                     src="/images/beaver_cropped.png"
