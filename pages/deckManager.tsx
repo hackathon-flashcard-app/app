@@ -8,11 +8,20 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 
-{/*make it to load array from JSON*/ }
+
 var testTuple: [string, string][];
 testTuple = [["Hey", "Steve"], ["Second", "Bill"], ["Third", "Jeff"]];
 
-{/*deck name will be a name property from JSON file*/ }
+export type FlashcardType = [string, string];
+
+interface MenuProps {
+    setFlashcards: React.Dispatch<React.SetStateAction<FlashcardType[]>>;
+  }
+
+  interface DeckManagerProps {
+    flashcards: FlashcardType[];
+  }
+
 
 const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.BrowserRouter), { ssr: false });
 
@@ -31,7 +40,7 @@ const variants = {
     }),
 };
 
-const DeckManager: React.FC = () => {
+const DeckManager: React.FC<DeckManagerProps> = ({ flashcards }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
     const handleLeftClick = () => {
@@ -46,7 +55,9 @@ const DeckManager: React.FC = () => {
             prevIndex === testTuple.length - 1 ? 0 : prevIndex + 1
         );
     };
-    const [front, back] = testTuple[currentIndex];
+
+    const deck = flashcards.length > 0 ? flashcards : [["add content here...", ""]];
+    const [front, back] = deck[currentIndex];
 
     return (
         <div style={{ padding: '2rem' }}>
@@ -109,7 +120,8 @@ const Header: React.FC = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            zIndex: 1000}}>
+            zIndex: 1000
+        }}>
             <div style={{ alignItems: 'left', display: 'flex' }}>
                 <Image
                     src="/images/beaver_cropped.png"
@@ -142,13 +154,33 @@ const Footer: React.FC = () => {
 }
 
 
-const Menu: React.FC = () => {
+const Menu: React.FC<MenuProps> = ({ setFlashcards }) => {
     const importGoogleDrive = () => {
 
     };
     const importJSON = () => {
 
     };
+    const importPDF = async () => {
+        const pdfText =
+          "femur - is a bone in a human leg\nhumerus - is a bone in the upper arm";
+        try {
+          const response = await fetch("http://127.0.0.1:8000/generate_flashcards", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ inputText: pdfText }),
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          console.log("Generated flashcards:", data.flashcards);
+          // ADDED: Update the shared flashcards state
+          setFlashcards(data.flashcards);
+        } catch (err) {
+          console.error("Error importing PDF:", err);
+        }
+      };
     return (
         <div
             style={{
@@ -166,6 +198,9 @@ const Menu: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from Google Drive</button>
                 <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from JSON</button>
+                <button>Import from Google Drive</button>
+                <button>Import from JSON</button>
+                <button onClick={importPDF}>Upload PDF</button>
                 <Link href="/manualFlashcards">
                     <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Manually create flashcards</button>
                 </Link>
@@ -178,11 +213,13 @@ const Menu: React.FC = () => {
 }
 
 const App: React.FC = () => {
+    const [flashcards, setFlashcards] = useState<FlashcardType[]>([]);
+    
     return (
         <BrowserRouter>
             <Header />
-            <Menu />
-            <DeckManager />
+            <Menu setFlashcards={setFlashcards} />
+            <DeckManager flashcards={flashcards} />
             <Footer />
         </BrowserRouter>
     );
