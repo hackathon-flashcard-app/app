@@ -1,12 +1,14 @@
 import React from 'react';
 import styles from './Flashcard.module.css';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Flashcard from '../static/components/Flashcard'
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import fs from 'fs';
+import pdf from 'pdf-parse';
 
 
 var testTuple: [string, string][];
@@ -16,11 +18,11 @@ export type FlashcardType = [string, string];
 
 interface MenuProps {
     setFlashcards: React.Dispatch<React.SetStateAction<FlashcardType[]>>;
-  }
+}
 
-  interface DeckManagerProps {
+interface DeckManagerProps {
     flashcards: FlashcardType[];
-  }
+}
 
 
 const BrowserRouter = dynamic(() => import('react-router-dom').then(mod => mod.BrowserRouter), { ssr: false });
@@ -155,32 +157,60 @@ const Footer: React.FC = () => {
 
 
 const Menu: React.FC<MenuProps> = ({ setFlashcards }) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const importGoogleDrive = () => {
 
     };
     const importJSON = () => {
 
     };
-    const importPDF = async () => {
-        const pdfText =
-          "femur - is a bone in a human leg\nhumerus - is a bone in the upper arm";
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
         try {
-          const response = await fetch("http://127.0.0.1:8000/generate_flashcards", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ inputText: pdfText }),
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          console.log("Generated flashcards:", data.flashcards);
-          // ADDED: Update the shared flashcards state
-          setFlashcards(data.flashcards);
+            // Read the file as an ArrayBuffer
+            const arrayBuffer = await file.arrayBuffer();
+
+            // Dynamically import pdfjs-dist from its legacy build
+            const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf');
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
+
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
+
+            let pdfText = '';
+            // Loop through each page and extract text
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                // Combine text items into one string for this page
+                const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                pdfText += pageText + '\n';
+            }
+
+            // Now call your backend API with the extracted PDF text
+            const response = await fetch("http://127.0.0.1:8000/generate_flashcards", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ inputText: pdfText }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log("Generated flashcards:", data.flashcards);
+            // Update the shared flashcards state
+            setFlashcards(data.flashcards);
         } catch (err) {
-          console.error("Error importing PDF:", err);
+            console.error("Error processing PDF:", err);
         }
-      };
+    };
+    const importPDF = async () => {
+        fileInputRef.current?.click();
+    };
     return (
         <div
             style={{
@@ -195,14 +225,21 @@ const Menu: React.FC<MenuProps> = ({ setFlashcards }) => {
                 zIndex: 10
             }}
         >
+            <input
+                type="file"
+                accept="application/pdf"
+                style={{ display: 'none' }}
+                ref={fileInputRef}
+                onChange={handleFileChange}
+            />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from Google Drive</button>
-                <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Import from JSON</button>
+                <button style={{ backgroundColor: '#f57f1c', color: 'black', padding: 10 }}>Import from Google Drive</button>
+                <button style={{ backgroundColor: '#f57f1c', color: 'black', padding: 10 }}>Import from JSON</button>
                 <button>Import from Google Drive</button>
                 <button>Import from JSON</button>
                 <button onClick={importPDF}>Upload PDF</button>
                 <Link href="/manualFlashcards">
-                    <button style={{backgroundColor: '#f57f1c', color:'black', padding: 10}}>Manually create flashcards</button>
+                    <button style={{ backgroundColor: '#f57f1c', color: 'black', padding: 10 }}>Manually create flashcards</button>
                 </Link>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -214,7 +251,7 @@ const Menu: React.FC<MenuProps> = ({ setFlashcards }) => {
 
 const App: React.FC = () => {
     const [flashcards, setFlashcards] = useState<FlashcardType[]>([]);
-    
+
     return (
         <BrowserRouter>
             <Header />
