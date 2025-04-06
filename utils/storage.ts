@@ -175,7 +175,7 @@ export const deleteDeck = (deckId: string): boolean => {
       const newActiveDeck = updatedDecks.length > 0 ? updatedDecks[0].id : null;
       localStorage.setItem('activeDeckId', newActiveDeck || '');
     }
-    
+
     return true;
   } catch (error) {
     console.error(`Error deleting deck ${deckId}:`, error);
