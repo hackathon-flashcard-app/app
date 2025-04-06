@@ -94,13 +94,9 @@ const DeckManager: React.FC = () => {
 
 
 const Header: React.FC = () => {
-
-
     const handleLogout = () => {
         console.log('User logged out');
     };
-
-
     return (
         <header style={{
             position: 'fixed',
@@ -151,9 +147,6 @@ const Menu: React.FC = () => {
 
     };
     const importJSON = () => {
-
-    };
-    const manualFlashcards = () => {
 
     };
     return (
