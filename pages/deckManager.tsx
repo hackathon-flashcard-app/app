@@ -45,20 +45,20 @@ const variants = {
 const DeckManager: React.FC<DeckManagerProps> = ({ flashcards }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
+    const deck = flashcards.length > 0 ? flashcards : [["add content here...", ""]];
+    
     const handleLeftClick = () => {
         setDirection(-1);
         setCurrentIndex((prevIndex) =>
-            prevIndex === 0 ? testTuple.length - 1 : prevIndex - 1
+            prevIndex === 0 ? deck.length - 1 : prevIndex - 1
         );
     };
     const handleRightClick = () => {
         setDirection(1);
         setCurrentIndex((prevIndex) =>
-            prevIndex === testTuple.length - 1 ? 0 : prevIndex + 1
+            prevIndex === deck.length - 1 ? 0 : prevIndex + 1
         );
     };
-
-    const deck = flashcards.length > 0 ? flashcards : [["add content here...", ""]];
     const [front, back] = deck[currentIndex];
 
     return (
