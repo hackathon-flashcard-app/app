@@ -204,7 +204,7 @@ const AddFlashcard: React.FC<AddFlashcardProps> = ({ setFlashcards }) => {
                 onClick={() => setIsFormOpen(!isFormOpen)}
                 style={{
                     position: "fixed",
-                    bottom: 80,
+                    bottom: "80px",
                     right: "20px",
                     borderRadius: "50%",
                     width: "60px",
