@@ -21,7 +21,9 @@ import {
 	saveDeck,
 	createDeck,
 	getActiveDeckId,
-	setActiveDeck
+	setActiveDeck,
+	getJsonFilesFromDrive,
+	DriveFile
 } from '@/utils/storage';
 import DeckSelector from '@/components/DeckSelector';
 
@@ -531,60 +533,14 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 	const [frontText, setFrontText] = useState("");
 	const [backText, setBackText] = useState("");
 	const [metadataRefreshCounter, setMetadataRefreshCounter] = useState(0);
+	const [driveFiles, setDriveFiles] = useState<DriveFile[]>([]);
+	const [isDriveDropdownOpen, setIsDriveDropdownOpen] = useState(false);
 
 	// Check if we have any flashcards
 	const hasFlashcards = currentDeck && Array.isArray(currentDeck.cards) && currentDeck.cards.length > 0;
 
-	// Handle exporting current deck
-	const handleExportDeck = () => {
-		if (!currentDeck) {
-			setMessage('No deck selected to export');
-			setTimeout(() => setMessage(''), 3000);
-			return;
-		}
-
-		try {
-			setLoading(prev => ({ ...prev, export: true }));
-
-			// Determine the storage type and save accordingly
-			const storageType = getStorageType();
-
-			if (storageType === 'google' && session?.accessToken) {
-				// Save to Google Drive
-				saveToDrive(
-					`${currentDeck.name.replace(/\s+/g, '_')}.json`,
-					currentDeck,
-					session.accessToken as string
-				)
-					.then(success => {
-						if (success) {
-							setMessage('Saved to Google Drive successfully');
-						} else {
-							setMessage('Failed to save to Google Drive');
-						}
-						setLoading(prev => ({ ...prev, export: false }));
-					});
-			} else {
-				// Save to local file
-				saveToFile(
-					JSON.stringify(currentDeck, null, 2),
-					currentDeck.name.replace(/\s+/g, '_')
-				);
-				setMessage('Deck exported to file successfully');
-				setLoading(prev => ({ ...prev, export: false }));
-			}
-		} catch (error) {
-			console.error('Error exporting deck:', error);
-			setMessage('Error exporting deck');
-			setLoading(prev => ({ ...prev, export: false }));
-		}
-
-		// Clear message after 3 seconds
-		setTimeout(() => setMessage(''), 3000);
-	};
-
-	// Import from Google Drive
-	const importGoogleDrive = async () => {
+	// Fetch JSON files from Google Drive
+	const fetchDriveFiles = async () => {
 		if (!session?.accessToken) {
 			setMessage('Please sign in with Google to access Google Drive');
 			setTimeout(() => setMessage(''), 3000);
@@ -594,14 +550,30 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 		setLoading(prev => ({ ...prev, googleDrive: true }));
 
 		try {
-			// Get list of files (TODO: implement file selection UI)
-			const fileName = prompt('Enter the name of the deck to import:');
-			if (!fileName) {
-				setLoading(prev => ({ ...prev, googleDrive: false }));
-				return;
-			}
+			const files = await getJsonFilesFromDrive(session.accessToken as string);
+			setDriveFiles(files);
+			setIsDriveDropdownOpen(true);
+		} catch (error) {
+			console.error('Error fetching files from Google Drive:', error);
+			setMessage('Error loading files from Google Drive');
+		}
 
-			const data = await getFromDrive(`${fileName}.json`, session.accessToken as string);
+		setLoading(prev => ({ ...prev, googleDrive: false }));
+	};
+
+	// Import from Google Drive with selected file
+	const importGoogleDrive = async (fileName: string) => {
+		if (!session?.accessToken) {
+			setMessage('Please sign in with Google to access Google Drive');
+			setTimeout(() => setMessage(''), 3000);
+			return;
+		}
+
+		setLoading(prev => ({ ...prev, googleDrive: true }));
+		setIsDriveDropdownOpen(false);
+
+		try {
+			const data = await getFromDrive(fileName, session.accessToken as string);
 
 			if (data) {
 				// Check if it's in the new deck format
@@ -610,13 +582,18 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 					saveDeck(data);
 					setCurrentDeck(data);
 					refreshDecks();
+					// Update metadata counter to refresh DeckSelector
+					setMetadataRefreshCounter(prev => prev + 1);
 					setMessage(`Deck "${data.name}" loaded from Google Drive`);
 				} else if (Array.isArray(data)) {
 					// Old format - convert to new format
-					const newDeck = createDeck(fileName, '', data);
+					const deckName = fileName.replace(/\.json$/, '');
+					const newDeck = createDeck(deckName, '', data);
 					setCurrentDeck(newDeck);
 					refreshDecks();
-					setMessage(`Converted and imported ${data.length} flashcards as "${fileName}"`);
+					// Update metadata counter to refresh DeckSelector
+					setMetadataRefreshCounter(prev => prev + 1);
+					setMessage(`Converted and imported ${data.length} flashcards as "${deckName}"`);
 				} else {
 					setMessage('Invalid deck format');
 				}
@@ -656,6 +633,8 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 						saveDeck(data);
 						setCurrentDeck(data);
 						refreshDecks();
+						// Update metadata counter to refresh DeckSelector
+						setMetadataRefreshCounter(prev => prev + 1);
 						setMessage(`Deck "${data.name}" imported successfully`);
 					} else if (Array.isArray(data)) {
 						// Old format - convert to new format
@@ -663,6 +642,8 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 						const newDeck = createDeck(deckName, '', data);
 						setCurrentDeck(newDeck);
 						refreshDecks();
+						// Update metadata counter to refresh DeckSelector
+						setMetadataRefreshCounter(prev => prev + 1);
 						setMessage(`Converted and imported ${data.length} flashcards as "${deckName}"`);
 					} else {
 						setMessage('Invalid deck format in JSON file');
@@ -823,12 +804,14 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 				}}
 			>
 				{/* Deck selection section */}
-				<DeckSelector onDeckSelected={(deckId) => {
-					const selectedDeck = getDeck(deckId);
-					if (selectedDeck) {
-						setCurrentDeck(selectedDeck);
-					}
-				}} />
+				<DeckSelector 
+					refreshTrigger={metadataRefreshCounter}
+					onDeckSelected={(deckId) => {
+						const selectedDeck = getDeck(deckId);
+						if (selectedDeck) {
+							setCurrentDeck(selectedDeck);
+						}
+					}} />
 
 				<div style={{
 					borderTop: '1px solid #444',
@@ -840,19 +823,88 @@ const Menu: React.FC<MenuProps> = ({ currentDeck, setCurrentDeck, refreshDecks }
 				}}>
 					<h3 style={{ fontSize: '1rem', marginBottom: '10px' }}>Import Options</h3>
 
-					<button
-						onClick={importGoogleDrive}
-						disabled={loading.googleDrive || !session}
-						style={{
-							backgroundColor: '#f57f1c',
-							color: 'black',
-							padding: 10,
-							opacity: !session ? 0.5 : 1
-						}}
-					>
-						{loading.googleDrive ? 'Loading...' : 'Import from Google Drive'}
-						{!session && <span style={{ display: 'block', fontSize: '0.8em' }}>(Sign in required)</span>}
-					</button>
+					<div style={{ position: 'relative' }}>
+						<button
+							onClick={fetchDriveFiles}
+							disabled={loading.googleDrive || !session}
+							style={{
+								backgroundColor: '#f57f1c',
+								color: 'black',
+								padding: 10,
+								opacity: !session ? 0.5 : 1,
+								width: '100%',
+								display: 'flex',
+								justifyContent: 'space-between',
+								alignItems: 'center'
+							}}
+						>
+							<span>
+								{loading.googleDrive ? 'Loading...' : 'Import from Google Drive'}
+								{!session && <span style={{ display: 'block', fontSize: '0.8em' }}>(Sign in required)</span>}
+							</span>
+							<span style={{ fontSize: '0.8em', marginLeft: '5px' }}>▼</span>
+						</button>
+						
+						{isDriveDropdownOpen && (
+							<div 
+								style={{
+									position: 'absolute',
+									top: '100%',
+									left: 0,
+									right: 0,
+									backgroundColor: '#3a3f48',
+									border: '1px solid #4a5568',
+									borderRadius: '4px',
+									zIndex: 1001,
+									maxHeight: '200px',
+									overflowY: 'auto'
+								}}
+							>
+								{driveFiles.length === 0 ? (
+									<div style={{ padding: '10px', textAlign: 'center', color: '#aaa' }}>
+										No JSON files found
+									</div>
+								) : (
+									driveFiles.map(file => (
+										<div
+											key={file.id}
+											onClick={() => importGoogleDrive(file.name)}
+											style={{
+												padding: '8px 12px',
+												cursor: 'pointer',
+												borderBottom: '1px solid #4a5568',
+												transition: 'background-color 0.2s'
+											}}
+											onMouseOver={(e) => {
+												e.currentTarget.style.backgroundColor = '#4a5568';
+											}}
+											onMouseOut={(e) => {
+												e.currentTarget.style.backgroundColor = 'transparent';
+											}}
+										>
+											{file.name}
+											{file.modifiedTime && (
+												<div style={{ fontSize: '0.8em', color: '#aaa' }}>
+													{new Date(file.modifiedTime).toLocaleDateString()}
+												</div>
+											)}
+										</div>
+									))
+								)}
+								<div 
+									style={{
+										padding: '8px 12px',
+										textAlign: 'center',
+										borderTop: '1px solid #4a5568',
+										cursor: 'pointer'
+									}}
+									onClick={() => setIsDriveDropdownOpen(false)}
+								>
+									Close
+								</div>
+							</div>
+						)}
+					</div>
 
 					<button
 						onClick={importJSON}
