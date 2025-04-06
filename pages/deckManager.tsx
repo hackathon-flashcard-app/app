@@ -150,20 +150,22 @@ const DeckManager: React.FC<DeckManagerProps> = ({ flashcards, setFlashcards }) 
 
     return (
         <div style={{ 
-            padding: '2rem',
+            position: 'absolute',
+            top: '75px', // Below header
+            left: '200px', // Menu width
+            right: '0',
+            bottom: '10vh',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            position: 'relative',
-            left: '100px', // Offset to account for the 200px menu (half of 200px)
-            width: 'calc(100% - 200px)' // Adjust width to account for menu
+            justifyContent: 'center',
+            padding: '0'
         }}>
             {/* Main container for better centering */}
             <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                justifyContent: 'center', 
-                marginTop: 125,
+                justifyContent: 'center',
                 width: '100%',
                 maxWidth: '1060px' // 900px card + 2 × 80px buttons
             }}>
